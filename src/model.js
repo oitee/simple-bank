@@ -1,4 +1,5 @@
 import * as db from "./db_connection.js";
+import * as constants from "./constants.js";
 
 db.poolStart();
 
@@ -29,14 +30,16 @@ export async function singleAccountTransaction(
   try {
     const transactionId = await findTransactionId(client, transactionType);
     if (!confirmAccount(client, accountNo)) {
-      return `Error: Account does not exist: ${accountNo}`;
+      return constants.errorMessages.incorrectAccount + accountNo;
     }
 
     if (!(await confirmTransactionLimit(client, transactionId, accountNo))) {
       if (transactionType === "deposit") {
-        return `Error: Exceeded the total number of permissible deposits for the day`;
+        return constants.errorMessages.maxDeposit + accountNo;
+        // return `Error: Exceeded the total number of permissible deposits for the day`;
       }
-      return `Error: Exceeded the total number of permissible withdrawals for the day`;
+      return constants.errorMessages.maxWithdraw + accountNo;
+    //   return `Error: Exceeded the total number of permissible withdrawals for the day`;
     }
 
     await client.query(`BEGIN ISOLATION LEVEL REPEATABLE READ`);
@@ -48,9 +51,11 @@ export async function singleAccountTransaction(
       //! Investigate errors here (optional)
       client.query(`ROLLBACK`);
       if (transactionType === "deposit") {
-        return `Transaction Unsucessful. The resultant balance will exceed INR 1000`;
+        return constants.errorMessages.maxBalance + accountNo;
+        //return `Transaction Unsucessful. The resultant balance will exceed INR 1000`;
       }
-      return `Transaction Unsucessful. The resultant balance will reduce INR 0`;
+      return constants.errorMessages.minBalance + accountNo;
+      // return `Transaction Unsucessful. The resultant balance will reduce INR 0`;
     }
     await client.query(
       "INSERT INTO ledger (operation, account, amount) VALUES ($1, $2, $3)",
@@ -58,9 +63,11 @@ export async function singleAccountTransaction(
     );
     await client.query("COMMIT");
     if (transactionType === "deposit") {
-      return `Transaction successful. INR ${amount} deposited in ${accountNo}`;
+      return constants.successMessages.deposit + `INR ${amount} deposited in ${accountNo}`;
+      //  return `Transaction successful. INR ${amount} deposited in ${accountNo}`;
     }
-    return `Transaction successful. INR ${amount} withdrawn from ${accountNo}`;
+    return constants.successMessages.withdraw + `INR ${amount} withdrawn from ${accountNo}`
+    // return `Transaction successful. INR ${amount} withdrawn from ${accountNo}`;
   } catch (e) {
     console.log(e);
     return `Unexpected error.`;
@@ -77,21 +84,25 @@ export async function transfer(account1, account2, amount) {
     const account2TransactionId = await findTransactionId(client, "deposit");
 
     if (!(await confirmAccount(client, account1))) {
-      return `Error: Account does not exist: ${account1}`;
+      return constants.errorMessages.incorrectAccount + account1;
+        // return `Error: Account does not exist: ${account1}`;
     }
     if (!(await confirmAccount(client, account2))) {
-      return `Error: Account does not exist: ${account2}`;
+        return constants.errorMessages.incorrectAccount + account2;
+        //return `Error: Account does not exist: ${account2}`;
     }
     if (
       !(await confirmTransactionLimit(client, account1TransactionId, account1))
     ) {
-      return `Error: Exceeded the total number of permissible withdrawals for the day for account ${account1}`;
+      return constants.errorMessages.maxWithdraw + account1;
+    //return `Error: Exceeded the total number of permissible withdrawals for the day for account ${account1}`;
     }
 
     if (
       !(await confirmTransactionLimit(client, account2TransactionId, account2))
     ) {
-      return `Error: Exceeded the total number of permissible deposits for the day for account ${account2}`;
+      return constants.errorMessages.maxDeposit + account2;
+    // return `Error: Exceeded the total number of permissible deposits for the day for account ${account2}`;
     }
 
     await client.query(`BEGIN ISOLATION LEVEL REPEATABLE READ`);
@@ -102,7 +113,8 @@ export async function transfer(account1, account2, amount) {
     );
     if (withdrawRes.rows.length === 0) {
       await client.query(`ROLLBACK`);
-      return `Transaction Unsucessful. The resultant balance of account ${account1} will reduce below INR 0`;
+      return constants.errorMessages.minBalance + account1;
+      //return `Transaction Unsucessful. The resultant balance of account ${account1} will reduce below INR 0`;
     }
 
     //deposit
@@ -112,7 +124,8 @@ export async function transfer(account1, account2, amount) {
     );
     if (depositRes.rows.length === 0) {
       await client.query(`ROLLBACK`);
-      return `Transaction Unsucessful. The resultant balance of account ${accoung2} will exceed INR 100000`;
+      return constants.errorMessages.maxBalance + account2;
+      //return `Transaction Unsucessful. The resultant balance of account ${account2} will exceed INR 100000`;
     }
 
     await client.query(
@@ -125,8 +138,8 @@ export async function transfer(account1, account2, amount) {
     );
 
     await client.query("COMMIT");
-
-    return `Successfully transferred ${amount} from account ${account1} to account ${account2}`;
+    return constants.successMessages.transfer + `INR ${amount} transferred from account ${account1} to account ${account2}`
+    //return `Successfully transferred ${amount} from account ${account1} to account ${account2}`;
   } catch (e) {
     console.log(e);
     return `Unexpected error.`;

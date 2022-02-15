@@ -1,7 +1,7 @@
 import * as model from "./model.js";
+import * as constants from "./constants.js";
 
 function createAccount(name) {
-  //! Add initial deposit amount
   const accountId = model.createAccount(name);
   if (accountId) {
     return accountId;
@@ -9,20 +9,18 @@ function createAccount(name) {
   return `Error: Could not create a new account with the name: ${name}`;
 }
 
-async function deposit(accountNo, amount) {
+async function deposit(account, amount) {
   if (confirmDepositAmount(amount)) {
-    return await model.singleAccountTransaction(accountNo, amount, "deposit");
-  } else {
-    return `Error: Deposit amount needs to between INR 500 and INR 50,000 per transaction`;
-  }
+    return await model.singleAccountTransaction(account, amount, "deposit");
+  } 
+  return constants.errorMessages.depositAmount + account;
 }
 
-async function withdraw(accountNo, amount) {
+async function withdraw(account, amount) {
   if (confirmWithdrawalAmount(amount)) {
-    return await model.singleAccountTransaction(accountNo, amount, "withdraw");
-  } else {
-    `Error: Withdrawal amount needs to be between INR 1,000 and INR 25,000 per transaction`;
-  }
+    return await model.singleAccountTransaction(account, amount, "withdraw");
+  } 
+  return constants.errorMessages.withdrawAmount + account;
 }
 
 async function transfer(account1, account2, amount) {
@@ -30,10 +28,9 @@ async function transfer(account1, account2, amount) {
     if (confirmDepositAmount(amount)) {
       return await model.transfer(account1, account2, amount);
     }
-    return `Error: Deposit amount for account ${account2} needs to be between INR 500 and INR 50,000 per transaction`;
-  } else {
-    return `Error: Withdrawal amount for account ${account1} needs to be between INR 1,000 and INR 25,000 per transaction`;
-  }
+    return constants.errorMessages.depositAmount + account2;
+  } 
+  return constants.errorMessages.withdrawAmount + account1;
 }
 
 function confirmDepositAmount(amount) {
