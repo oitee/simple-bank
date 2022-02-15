@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS transaction_type (
 
 CREATE TABLE IF NOT EXISTS ledger (
     operation INTEGER REFERENCES transaction_type(id),
-    account INTEGER REFERENCES accounts(id),
+    account INTEGER REFERENCES account(id),
     amount INTEGER NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

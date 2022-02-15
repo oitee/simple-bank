@@ -4,9 +4,9 @@ import * as constants from "./constants.js";
 const { Pool } = pkg;
 
 const poolConfig = {
-  user: utils.PG_USER,
-  database: utils.PG_DATABASE,
-  port: utils.PG_PORT,
+  user: constants.PG_USER,
+  database: constants.PG_DATABASE,
+  port: constants.PG_PORT,
   connectionTimeoutMillis: 60000,
   max: 5,
 };
