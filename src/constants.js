@@ -10,7 +10,7 @@ export const errorMessages = {
     incorrectAccount: "Error: Account does not exist: ",
     maxDeposit: "Error: Exceeded the total number of permissible deposits for the day for account: ",
     maxWithdraw: "Error: Exceeded the total number of permissible withdrawals for the day for account: ",
-    maxBalance: "Transaction Unsucessful. The resultant balance will exceed INR 1000 for account :",
+    maxBalance: "Transaction Unsucessful. The resultant balance will exceed INR 1,00,000 for account :",
     minBalance: "Transaction Unsucessful. The resultant balance will reduce INR 0 for account: ",
 
 }

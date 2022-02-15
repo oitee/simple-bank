@@ -1,25 +1,25 @@
 import * as model from "./model.js";
 import * as constants from "./constants.js";
 
-async function createAccount(name) {
+export async function createAccount(name) {
   return await model.createAccount(name);
 }
 
-async function deposit(account, amount) {
+export async function deposit(account, amount) {
   if (confirmDepositAmount(amount)) {
     return await model.singleAccountTransaction(account, amount, "deposit");
   } 
   return constants.errorMessages.depositAmount + account;
 }
 
-async function withdraw(account, amount) {
+export async function withdraw(account, amount) {
   if (confirmWithdrawalAmount(amount)) {
     return await model.singleAccountTransaction(account, amount, "withdraw");
   } 
   return constants.errorMessages.withdrawAmount + account;
 }
 
-async function transfer(account1, account2, amount) {
+export async function transfer(account1, account2, amount) {
   if (confirmWithdrawalAmount(amount)) {
     if (confirmDepositAmount(amount)) {
       return await model.transfer(account1, account2, amount);
@@ -87,4 +87,4 @@ async function test() {
   console.log(await transfer(account3, account4, 2000));
 }
 
-test();
+//test();

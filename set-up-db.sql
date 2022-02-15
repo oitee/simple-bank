@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS ledger (
 
 CREATE INDEX IF NOT EXISTS ledger_account_idx ON ledger(account);
 CREATE INDEX IF NOT EXISTS ledger_created_at_idx ON ledger(created_at);
-INSERT INTO transaction_type (name) VALUES ('deposit'), ('withdraw'), ('transfer');
+INSERT INTO transaction_type (name) VALUES ('deposit'), ('withdraw');
 
 -- Example queries
 

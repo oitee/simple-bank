@@ -30,7 +30,7 @@ export async function singleAccountTransaction(
 
   try {
     const transactionId = await findTransactionId(client, transactionType);
-    if (!confirmAccount(client, accountNo)) {
+    if (!(await confirmAccount(client, accountNo))) {
       return constants.errorMessages.incorrectAccount + accountNo;
     }
 
@@ -50,7 +50,7 @@ export async function singleAccountTransaction(
     ]);
     if (res.rows.length === 0) {
       //! Investigate errors here (optional)
-      client.query(`ROLLBACK`);
+      await client.query(`ROLLBACK`);
       if (transactionType === "deposit") {
         return constants.errorMessages.maxBalance + accountNo;
         //return `Transaction Unsucessful. The resultant balance will exceed INR 1000`;
