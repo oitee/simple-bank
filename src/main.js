@@ -1,12 +1,8 @@
 import * as model from "./model.js";
 import * as constants from "./constants.js";
 
-function createAccount(name) {
-  const accountId = model.createAccount(name);
-  if (accountId) {
-    return accountId;
-  }
-  return `Error: Could not create a new account with the name: ${name}`;
+async function createAccount(name) {
+  return await model.createAccount(name);
 }
 
 async function deposit(account, amount) {
@@ -47,8 +43,11 @@ const holder3 = "Cat" + Math.random();
 const holder4 = "Dog" + Math.random();
 
 async function test() {
-    const account1 = await createAccount(holder1);
-    const account2 = await createAccount(holder2);
+    let accountCreationResponse = await createAccount(holder1);
+    const account1 = parseInt(accountCreationResponse.substring(constants.successMessages.create.length))
+    
+    accountCreationResponse = await createAccount(holder2)
+    const account2 = parseInt(accountCreationResponse.substring(constants.successMessages.create.length));
     console.log(account1);
     console.log(typeof account1 === "number");
     console.log(account2);
@@ -75,8 +74,10 @@ async function test() {
     console.log(await withdraw(account1, 1000));
 
   console.log(`----Transfers`);
-  const account3 = await createAccount(holder3);
-  const account4 = await createAccount(holder4);
+    accountCreationResponse = await createAccount(holder3);
+    const account3 = parseInt(accountCreationResponse.substring(constants.successMessages.create.length));
+    accountCreationResponse = await createAccount(holder4);
+    const account4 = parseInt(accountCreationResponse.substring(constants.successMessages.create.length));
 
   await deposit(account3, 30000);
   await deposit(account4, 30000);

@@ -16,6 +16,7 @@ export const errorMessages = {
 }
 
 export const successMessages ={
+    create: "Account creation successful. Account No: ",
     deposit: "Deposit successful. ",
     withdraw: "Withdrawl successful. ",
     transfer: "Transfer successful. "

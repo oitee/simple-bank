@@ -12,9 +12,10 @@ export async function createAccount(name) {
       "INSERT INTO account (holder) VALUES ($1) RETURNING id",
       [name]
     );
-    return res.rows[0].id;
+    return constants.successMessages.create + res.rows[0].id;
   } catch (e) {
-    return null;
+    console.log(e);
+    return `Unexpected Error`;
   } finally {
     await client.release();
   }
