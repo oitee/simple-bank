@@ -26,10 +26,15 @@ CREATE TABLE IF NOT EXISTS ledger (
 
 CREATE INDEX IF NOT EXISTS ledger_account_idx ON ledger(account);
 CREATE INDEX IF NOT EXISTS ledger_created_at_idx ON ledger(created_at);
+INSERT INTO transaction_type (name) VALUES ('deposit'), ('withdraw'), ('transfer');
+
+-- Example queries
 
 INSERT INTO account (holder) VALUES ('OT') RETURNING id; 
 INSERT INTO account (holder) VALUES ('OT1') RETURNING id; 
 INSERT INTO account (holder) VALUES ('OT2') RETURNING id; 
+
+INSERT INTO ledger (operation, account, amount) VALUES (1, 1001, 1000);
 
 SELECT * from account;
 
