@@ -1,6 +1,6 @@
 import * as model from "./model.js";
 
-function createAccount(name) {
+function createAccount(name) {//! Add initial deposit amount
   const accountId = model.createAccount(name);
   if (accountId) {
     return accountId;
@@ -35,6 +35,11 @@ async function test(){
      console.log(await deposit(accountNo1, 10000));
     console.log(`Account2 deposit with 10000`)
     console.log(await deposit(accountNo2, 10000));
+    console.log("More than 3 deposit transactions in a day");
+    console.log(await deposit(accountNo1, 10000));
+    console.log(await deposit(accountNo1, 10000));
+    console.log(await deposit(accountNo1, 10000));
+    
 
     
 }
