@@ -6,6 +6,9 @@ import * as main from "../src/main.js";
 const username1 = "Alice";
 const username2 = "Bob";
 
+/**
+ * Tests the creation of new accounts
+ */
 async function testCreateAccounts() {
   //test for successful creation of two accounts
   let accountCreationResponse = await main.createAccount(username1);
@@ -37,6 +40,11 @@ async function testCreateAccounts() {
   );
 }
 
+/**
+ * Tests the creation of valid deposit transactions and
+ * the failure of invalid deposit transactions
+ */
+
 async function testDepositTransactions() {
   //test for successful deposit transaction
 
@@ -62,7 +70,6 @@ async function testDepositTransactions() {
     );
 
     // test for transaction with out-of-bound deposit amount
-
     assert.equal(
       (
         await main.deposit(
@@ -124,6 +131,10 @@ async function testDepositTransactions() {
   });
 }
 
+/**
+ * Tests the creation of valid withdrawal transactions and
+ * the failure of invalid withdrawal transactions
+ */
 async function testWithdrawTransactions() {
   let account1 = await newAccount();
   await main.deposit(account1, 20000);
@@ -206,6 +217,10 @@ async function testWithdrawTransactions() {
   );
 }
 
+/**
+ * Tests the creation of valid transfers and
+ * the failure of invalid transfers
+ */
 async function testTransfers() {
   let account1 = await newAccount();
   let account2 = await newAccount();
@@ -381,6 +396,9 @@ async function testTransfers() {
   });
 }
 
+/**
+ * Creates and returns a new account
+ */
 async function newAccount() {
   let accountCreationResponse = await main.createAccount(
     username1 + Math.floor(Math.random() * 1000)
@@ -390,10 +408,17 @@ async function newAccount() {
   );
 }
 
+/**
+ * Genrates a random integer from a given range
+ */
 function generateRandom(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
+/**
+ * Tests whether for failed transactions, the balances of the relevant accounts
+ * on the DB, remain unchanged
+ */
 async function withBalanceUnchanged(accounts, assertionFn) {
   const balancesBefore = await Promise.all(
     accounts.map(async (account) => {
@@ -418,6 +443,10 @@ async function withBalanceUnchanged(accounts, assertionFn) {
   );
 }
 
+/**
+ * Tests whether for successful transactions, the balances of the relevant accounts
+ * on the DB, reflect expected changes.
+ */
 async function withChangedBalance(accounts, amount, transactions, assertionFn) {
   const balancesBefore = await Promise.all(
     accounts.map(async (account) => {

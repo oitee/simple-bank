@@ -7,7 +7,9 @@ import * as constants from "./constants.js";
 db.poolStart();
 
 const transactionTypeToId = new Map();
-
+/**
+ * Interacts with the DB and adds a new account and returns the a response message containing the account no.
+ */
 export async function createAccount(name) {
   const client = await db.pool.connect();
   try {
@@ -24,6 +26,10 @@ export async function createAccount(name) {
   }
 }
 
+/**
+ * Interacts with the DB to make changes for single-party transactions (deposit and withdrawal)
+ * Checks existence of account, daily transaction limit, and resultant balance being within max limit
+ */
 export async function singleAccountTransaction(
   account,
   amount,
@@ -78,6 +84,10 @@ export async function singleAccountTransaction(
   }
 }
 
+/**
+ * Interacts with the DB to make changes for two-party transactions (i.e., transfers)
+ * Checks existence of accounts, daily transaction limits, and resultant balances being within max limit
+ */
 export async function transfer(account1, account2, amount) {
   const client = await db.pool.connect();
 
@@ -146,6 +156,9 @@ export async function transfer(account1, account2, amount) {
   }
 }
 
+/**
+ * Generates the DB query for updating the balance of an account
+ */
 function getSingleTransactionQuery(transactionType) {
   switch (transactionType) {
     case "deposit":
@@ -157,6 +170,9 @@ function getSingleTransactionQuery(transactionType) {
   }
 }
 
+/**
+ * Interacts with the DB to confirm existence of a given account number
+ */
 async function confirmAccount(client, accountNo) {
   const res = await client.query("SELECT * FROM account WHERE id = $1", [
     accountNo,
@@ -164,6 +180,9 @@ async function confirmAccount(client, accountNo) {
   return res.rows.length > 0;
 }
 
+/**
+ * Interacts with the DB and returns the transaction id of a given type of transaction (deposit, withdrawal and transfer)
+ */
 async function findTransactionId(client, transactionType) {
   if (transactionTypeToId.has(transactionType)) {
     return transactionTypeToId.get(transactionType);
@@ -177,6 +196,10 @@ async function findTransactionId(client, transactionType) {
   return res.rows[0].id;
 }
 
+/**
+ * Interacts with the DB to confirm whether a given account has reached
+ * the daily limit of a given type of transaction
+ */
 async function confirmTransactionLimit(client, transactionId, accountNo) {
   const res = await client.query(
     "SELECT * FROM ledger WHERE operation = $1 AND account = $2 AND created_at >= current_date at time zone 'UTC';",
