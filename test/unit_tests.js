@@ -2,34 +2,35 @@ import assert from "assert";
 import * as db from "../src/db_connection.js";
 import * as constants from "../src/constants.js";
 import * as commands from "../src/commands.js";
+import * as utils from "../src/utils.js"
 
 const username1 = "Alice";
 const username2 = "Bob";
 
 function testInputParser() {
-  assert.deepEqual(commands.parseCommand("CREATE, Jones, 1123,"), [
+  assert.deepEqual(utils.parseCommand("CREATE, Jones, 1123,"), [
     "CREATE",
     "Jones",
     "1123",
   ]);
-  assert.deepEqual(commands.parseCommand("DEPOSIT, 1123,  1100"), [
+  assert.deepEqual(utils.parseCommand("DEPOSIT, 1123,  1100"), [
     "DEPOSIT",
     "1123",
     "1100",
   ]);
-  assert.deepEqual(commands.parseCommand("TRANSFER, 1011, 1123, 1000 "), [
+  assert.deepEqual(utils.parseCommand("TRANSFER, 1011, 1123, 1000 "), [
     "TRANSFER",
     "1011",
     "1123",
     "1000",
   ]);
-  assert.deepEqual(commands.parseCommand("CREATE, 1211, , , "), [
+  assert.deepEqual(utils.parseCommand("CREATE, 1211, , , "), [
     "CREATE",
     "1211",
   ]);
 
-  assert.deepEqual(commands.parseCommand(123), null);
-  assert.deepEqual(commands.parseCommand(["CREATE, Jones"]), null);
+  assert.deepEqual(utils.parseCommand(123), null);
+  assert.deepEqual(utils.parseCommand(["CREATE, Jones"]), null);
 }
 
 /**

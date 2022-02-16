@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import * as constants from "./constants.js";
 import * as db from "./db_connection.js";
-import * as initDb from "./init_db.js";
+import * as utils from "./utils.js";
 import * as model from "./model.js";
 
 const supportedCommands = new Map();
@@ -19,14 +19,14 @@ export async function launch() {
   try {
     for (let i = 0; i < commands.length; i++) {
       console.log(`INPUT: ${commands[i]}`);
-      let parsedCommand = await parseCommand(commands[i]);
+      let parsedCommand = await utils.parseCommand(commands[i]);
       if (!parsedCommand) {
         console.log(`OUTPUT: Invalid Input`);
       } else {
         let commandFn = supportedCommands.get(parsedCommand[0]);
         if (commandFn) {
           parsedCommand.shift();
-          const result = await callWithRetries(commandFn, parsedCommand);
+          const result = await utils.callWithRetries(commandFn, parsedCommand);
 
           console.log(`OUTPUT: ${result}`);
           console.log();
@@ -43,37 +43,8 @@ export async function launch() {
   }
 }
 
-export function parseCommand(str) {
-  if (str && typeof str === "string") {
-    return str
-      .split(",")
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0);
-  }
-  return null;
-}
-
-/**
- * Call the commandFn within try-catch block
- * Owing to repeatable-read isolation,
- * if the function-call throws an error, the system will
- * attempt one retry
- */
-async function callWithRetries(fn, args, maxRetries = 1, retry = 0) {
-  try {
-    return fn(...args);
-  } catch (e) {
-    if (retry < maxRetries) {
-      return callWithRetries(fn, args, 1, retry + 1);
-    }
-    console.log(`Unexpected Error`);
-    console.log(e);
-    return null;
-  }
-}
-
 async function initialisedb() {
-  return initDb.initialiseDb();
+  return utils.initialiseDb();
 }
 
 /**

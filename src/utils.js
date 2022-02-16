@@ -40,3 +40,32 @@ export async function initialiseDb() {
     return `Failed to initialise database`;
   }
 }
+
+export function parseCommand(str) {
+  if (str && typeof str === "string") {
+    return str
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+  }
+  return null;
+}
+
+/**
+ * Call the commandFn within try-catch block
+ * Owing to repeatable-read isolation,
+ * if the function-call throws an error, the system will
+ * attempt one retry
+ */
+export async function callWithRetries(fn, args, maxRetries = 1, retry = 0) {
+  try {
+    return fn(...args);
+  } catch (e) {
+    if (retry < maxRetries) {
+      return callWithRetries(fn, args, 1, retry + 1);
+    }
+    console.log(`Unexpected Error`);
+    console.log(e);
+    return null;
+  }
+}
