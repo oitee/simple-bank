@@ -1,8 +1,8 @@
 import * as db from "./db_connection.js";
 import * as constants from "./constants.js";
 
-//! docstrings- only descriptions
 //! the command-line interface: retry once if fails. (or add as further improvements)
+//! line-by-line reading can be done 
 
 db.poolStart();
 

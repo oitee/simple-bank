@@ -1,10 +1,24 @@
 import assert from "assert";
 import * as db from "../src/db_connection.js";
+import * as launch from "../src/launch.js"
 import * as constants from "../src/constants.js";
 import * as main from "../src/main.js";
 
 const username1 = "Alice";
 const username2 = "Bob";
+
+function testInputParser(){
+    assert.deepEqual(launch.parseCommand("CREATE, Jones, 1123,"),[ 'CREATE', 'Jones', '1123' ]);
+    assert.deepEqual(launch.parseCommand("DEPOSIT, 1123,  1100"), [ 'DEPOSIT', '1123', '1100' ]);
+    assert.deepEqual(launch.parseCommand("TRANSFER, 1011, 1123, 1000 "), [ 'TRANSFER', '1011', '1123', '1000' ]);
+    assert.deepEqual(launch.parseCommand("CREATE, 1211, , , "), [ 'CREATE', '1211' ]);
+    
+
+    assert.deepEqual(launch.parseCommand(123), null);
+    assert.deepEqual(launch.parseCommand(["CREATE, Jones"]), null);
+    
+    
+}
 
 /**
  * Tests the creation of new accounts
@@ -516,6 +530,7 @@ afterAll(async () => {
   await db.pool.end();
 });
 
+test("Validation of input string", testInputParser);
 test("Creation of new accounts", testCreateAccounts);
 test("Deposit transactions", testDepositTransactions);
 test("Withdrawal transactions", testWithdrawTransactions);
