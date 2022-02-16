@@ -1,6 +1,11 @@
 CREATE DATABASE bank_accounts;
 \connect bank_accounts;
 
+DROP TABLE IF EXISTS ledger;
+DROP TABLE IF EXISTS account;
+DROP TABLE IF EXISTS transaction_type;
+DROP SEQUENCE IF EXISTS account_number_seq;
+
 CREATE SEQUENCE IF NOT EXISTS account_number_seq START 1001;
 
 CREATE TABLE IF NOT EXISTS account (
