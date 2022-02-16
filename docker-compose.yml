@@ -2,6 +2,7 @@ version: '3'
 
 services:
   postgres:
+    container_name: simple_bank_pg
     # Docker Hub image
     image: postgres:14
     # Provide the password for postgres

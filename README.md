@@ -43,8 +43,9 @@ Note that account numbers are generated sequentially starting with `1001`. This 
 To run this project, the database needs to be created. 
 
 ```
+npm install
 docker-compose up -d
-docker exec -it simple-bank_postgres_1 psql -U postgres
+docker exec -it simple_bank_pg psql -U postgres
 CREATE DATABASE bank_accounts;
 ```
 At this point, we can run the commands in the `commands.csv` file:
