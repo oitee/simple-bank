@@ -33,14 +33,13 @@ export async function singleAccountTransaction(
     if (!(await confirmAccount(client, accountNo))) {
       return constants.errorMessages.incorrectAccount + accountNo;
     }
-
     if (!(await confirmTransactionLimit(client, transactionId, accountNo))) {
       if (transactionType === "deposit") {
         return constants.errorMessages.maxDeposit + accountNo;
         // return `Error: Exceeded the total number of permissible deposits for the day`;
       }
       return constants.errorMessages.maxWithdraw + accountNo;
-    //   return `Error: Exceeded the total number of permissible withdrawals for the day`;
+      //   return `Error: Exceeded the total number of permissible withdrawals for the day`;
     }
 
     await client.query(`BEGIN ISOLATION LEVEL REPEATABLE READ`);
@@ -64,10 +63,16 @@ export async function singleAccountTransaction(
     );
     await client.query("COMMIT");
     if (transactionType === "deposit") {
-      return constants.successMessages.deposit + `INR ${amount} deposited in ${accountNo}`;
+      return (
+        constants.successMessages.deposit +
+        `INR ${amount} deposited in ${accountNo}`
+      );
       //  return `Transaction successful. INR ${amount} deposited in ${accountNo}`;
     }
-    return constants.successMessages.withdraw + `INR ${amount} withdrawn from ${accountNo}`
+    return (
+      constants.successMessages.withdraw +
+      `INR ${amount} withdrawn from ${accountNo}`
+    );
     // return `Transaction successful. INR ${amount} withdrawn from ${accountNo}`;
   } catch (e) {
     console.log(e);
@@ -86,24 +91,24 @@ export async function transfer(account1, account2, amount) {
 
     if (!(await confirmAccount(client, account1))) {
       return constants.errorMessages.incorrectAccount + account1;
-        // return `Error: Account does not exist: ${account1}`;
+      // return `Error: Account does not exist: ${account1}`;
     }
     if (!(await confirmAccount(client, account2))) {
-        return constants.errorMessages.incorrectAccount + account2;
-        //return `Error: Account does not exist: ${account2}`;
+      return constants.errorMessages.incorrectAccount + account2;
+      //return `Error: Account does not exist: ${account2}`;
     }
     if (
       !(await confirmTransactionLimit(client, account1TransactionId, account1))
     ) {
       return constants.errorMessages.maxWithdraw + account1;
-    //return `Error: Exceeded the total number of permissible withdrawals for the day for account ${account1}`;
+      //return `Error: Exceeded the total number of permissible withdrawals for the day for account ${account1}`;
     }
 
     if (
       !(await confirmTransactionLimit(client, account2TransactionId, account2))
     ) {
       return constants.errorMessages.maxDeposit + account2;
-    // return `Error: Exceeded the total number of permissible deposits for the day for account ${account2}`;
+      // return `Error: Exceeded the total number of permissible deposits for the day for account ${account2}`;
     }
 
     await client.query(`BEGIN ISOLATION LEVEL REPEATABLE READ`);
@@ -139,7 +144,10 @@ export async function transfer(account1, account2, amount) {
     );
 
     await client.query("COMMIT");
-    return constants.successMessages.transfer + `INR ${amount} transferred from account ${account1} to account ${account2}`
+    return (
+      constants.successMessages.transfer +
+      `INR ${amount} transferred from account ${account1} to account ${account2}`
+    );
     //return `Successfully transferred ${amount} from account ${account1} to account ${account2}`;
   } catch (e) {
     console.log(e);

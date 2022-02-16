@@ -20,13 +20,14 @@ export async function withdraw(account, amount) {
 }
 
 export async function transfer(account1, account2, amount) {
-  if (confirmWithdrawalAmount(amount)) {
-    if (confirmDepositAmount(amount)) {
+  if (confirmDepositAmount(amount)) {
+    if (confirmWithdrawalAmount(amount)) {
       return await model.transfer(account1, account2, amount);
     }
-    return constants.errorMessages.depositAmount + account2;
+    return constants.errorMessages.withdrawAmount + account1;
+    
   } 
-  return constants.errorMessages.withdrawAmount + account1;
+  return constants.errorMessages.depositAmount + account2;
 }
 
 function confirmDepositAmount(amount) {
