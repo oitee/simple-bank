@@ -2,6 +2,12 @@
 export const PG_USER = process.env.PG_USER || "postgres"; //! Remove: the or cluses
 export const PG_DATABASE = process.env.PG_DATABASE || "bank_accounts";
 export const PG_PORT = process.env.PG_PORT || "5432";
+export const maxWithdrawalAmount = process.env.MAX_WITHDRAWAL_AMOUNT || 25000;
+export const minWithdrawalAmount = process.env.MIN_WITHDRAWAL_AMOUNT || 1000;
+export const maxDepositAmount = process.env.MAX_DEPOSIT_AMOUNT || 50000;
+export const minDepositAmount = process.env.MIN_DEPOSIT_AMOUNT || 500;
+export const minAccountBalance = process.env.MIN_ACCOUNT_BALANCE || 0;
+export const maxAccountBalance = process.env.MAX_ACCOUNT_BALANCE || 100000;
 
 
 export const errorMessages = {
