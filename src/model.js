@@ -1,6 +1,9 @@
 import * as db from "./db_connection.js";
 import * as constants from "./constants.js";
 
+//! docstrings- only descriptions
+//! the command-line interface: retry once if fails. (or add as further improvements)
+
 db.poolStart();
 
 const transactionTypeToId = new Map();
@@ -22,7 +25,7 @@ export async function createAccount(name) {
 }
 
 export async function singleAccountTransaction(
-  accountNo,
+  account,
   amount,
   transactionType
 ) {
@@ -30,50 +33,43 @@ export async function singleAccountTransaction(
 
   try {
     const transactionId = await findTransactionId(client, transactionType);
-    if (!(await confirmAccount(client, accountNo))) {
-      return constants.errorMessages.incorrectAccount + accountNo;
+    if (!(await confirmAccount(client, account))) {
+      return constants.errorMessages.incorrectAccount + account;
     }
-    if (!(await confirmTransactionLimit(client, transactionId, accountNo))) {
+    if (!(await confirmTransactionLimit(client, transactionId, account))) {
       if (transactionType === "deposit") {
-        return constants.errorMessages.maxDeposit + accountNo;
-        // return `Error: Exceeded the total number of permissible deposits for the day`;
+        return constants.errorMessages.maxDeposit + account;
       }
-      return constants.errorMessages.maxWithdraw + accountNo;
-      //   return `Error: Exceeded the total number of permissible withdrawals for the day`;
+      return constants.errorMessages.maxWithdraw + account;
     }
-
+    //! ADD: why repeatable read
     await client.query(`BEGIN ISOLATION LEVEL REPEATABLE READ`);
     const res = await client.query(getSingleTransactionQuery(transactionType), [
       amount,
-      accountNo,
+      account,
     ]);
     if (res.rows.length === 0) {
-      //! Investigate errors here (optional)
       await client.query(`ROLLBACK`);
       if (transactionType === "deposit") {
-        return constants.errorMessages.maxBalance + accountNo;
-        //return `Transaction Unsucessful. The resultant balance will exceed INR 1000`;
+        return constants.errorMessages.maxBalance + account;
       }
-      return constants.errorMessages.minBalance + accountNo;
-      // return `Transaction Unsucessful. The resultant balance will reduce INR 0`;
+      return constants.errorMessages.minBalance + account;
     }
     await client.query(
       "INSERT INTO ledger (operation, account, amount) VALUES ($1, $2, $3)",
-      [transactionId, accountNo, amount]
+      [transactionId, account, amount]
     );
     await client.query("COMMIT");
     if (transactionType === "deposit") {
       return (
         constants.successMessages.deposit +
-        `INR ${amount} deposited in ${accountNo}`
+        `INR ${amount} deposited in ${account}`
       );
-      //  return `Transaction successful. INR ${amount} deposited in ${accountNo}`;
     }
     return (
       constants.successMessages.withdraw +
-      `INR ${amount} withdrawn from ${accountNo}`
+      `INR ${amount} withdrawn from ${account}`
     );
-    // return `Transaction successful. INR ${amount} withdrawn from ${accountNo}`;
   } catch (e) {
     console.log(e);
     return `Unexpected error.`;
@@ -91,24 +87,20 @@ export async function transfer(account1, account2, amount) {
 
     if (!(await confirmAccount(client, account1))) {
       return constants.errorMessages.incorrectAccount + account1;
-      // return `Error: Account does not exist: ${account1}`;
     }
     if (!(await confirmAccount(client, account2))) {
       return constants.errorMessages.incorrectAccount + account2;
-      //return `Error: Account does not exist: ${account2}`;
     }
     if (
       !(await confirmTransactionLimit(client, account1TransactionId, account1))
     ) {
       return constants.errorMessages.maxWithdraw + account1;
-      //return `Error: Exceeded the total number of permissible withdrawals for the day for account ${account1}`;
     }
 
     if (
       !(await confirmTransactionLimit(client, account2TransactionId, account2))
     ) {
       return constants.errorMessages.maxDeposit + account2;
-      // return `Error: Exceeded the total number of permissible deposits for the day for account ${account2}`;
     }
 
     await client.query(`BEGIN ISOLATION LEVEL REPEATABLE READ`);
@@ -120,7 +112,6 @@ export async function transfer(account1, account2, amount) {
     if (withdrawRes.rows.length === 0) {
       await client.query(`ROLLBACK`);
       return constants.errorMessages.minBalance + account1;
-      //return `Transaction Unsucessful. The resultant balance of account ${account1} will reduce below INR 0`;
     }
 
     //deposit
@@ -131,7 +122,6 @@ export async function transfer(account1, account2, amount) {
     if (depositRes.rows.length === 0) {
       await client.query(`ROLLBACK`);
       return constants.errorMessages.maxBalance + account2;
-      //return `Transaction Unsucessful. The resultant balance of account ${account2} will exceed INR 100000`;
     }
 
     await client.query(
@@ -148,7 +138,6 @@ export async function transfer(account1, account2, amount) {
       constants.successMessages.transfer +
       `INR ${amount} transferred from account ${account1} to account ${account2}`
     );
-    //return `Successfully transferred ${amount} from account ${account1} to account ${account2}`;
   } catch (e) {
     console.log(e);
     return `Unexpected error.`;
@@ -160,9 +149,9 @@ export async function transfer(account1, account2, amount) {
 function getSingleTransactionQuery(transactionType) {
   switch (transactionType) {
     case "deposit":
-      return "UPDATE account SET balance = balance + $1 WHERE id = $2 AND (balance + $1) < 100000 RETURNING balance";
+      return `UPDATE account SET balance = balance + $1 WHERE id = $2 AND (balance + $1) < ${constants.maxAccountBalance} RETURNING balance`;
     case "withdraw":
-      return "UPDATE account SET balance = balance - $1 WHERE id = $2 and (balance - $1) > 0 RETURNING balance";
+      return `UPDATE account SET balance = balance - $1 WHERE id = $2 and (balance - $1) > ${constants.minAccountBalance} RETURNING balance`;
     default:
       return null;
   }
@@ -189,18 +178,9 @@ async function findTransactionId(client, transactionType) {
 }
 
 async function confirmTransactionLimit(client, transactionId, accountNo) {
-  const currentTime = new Date();
-  const lastMidnight = currentTime.setUTCHours(0, 0, 0, 0) / 1000;
-
   const res = await client.query(
-    "SELECT * FROM ledger WHERE operation = $1 AND account = $2 AND created_at > to_timestamp($3)",
-    [transactionId, accountNo, lastMidnight]
+    "SELECT * FROM ledger WHERE operation = $1 AND account = $2 AND created_at >= current_date at time zone 'UTC';",
+    [transactionId, accountNo]
   );
   return res.rows.length < 3;
-}
-
-function test() {
-  console.log(getSingleTransactionQuery("deposit"));
-  console.log(getSingleTransactionQuery("withdraw"));
-  console.log(getSingleTransactionQuery("www"));
 }
