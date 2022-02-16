@@ -1,11 +1,6 @@
 import * as db from "./db_connection.js";
 import * as constants from "./constants.js";
 
-//! the command-line interface: retry once if fails. (or add as further improvements)
-//! line-by-line reading can be done 
-
-db.poolStart();
-
 const transactionTypeToId = new Map();
 /**
  * Interacts with the DB and adds a new account and returns the a response message containing the account no.

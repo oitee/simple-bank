@@ -1,23 +1,35 @@
 import assert from "assert";
 import * as db from "../src/db_connection.js";
-import * as launch from "../src/launch.js"
 import * as constants from "../src/constants.js";
-import * as main from "../src/main.js";
+import * as commands from "../src/commands.js";
 
 const username1 = "Alice";
 const username2 = "Bob";
 
-function testInputParser(){
-    assert.deepEqual(launch.parseCommand("CREATE, Jones, 1123,"),[ 'CREATE', 'Jones', '1123' ]);
-    assert.deepEqual(launch.parseCommand("DEPOSIT, 1123,  1100"), [ 'DEPOSIT', '1123', '1100' ]);
-    assert.deepEqual(launch.parseCommand("TRANSFER, 1011, 1123, 1000 "), [ 'TRANSFER', '1011', '1123', '1000' ]);
-    assert.deepEqual(launch.parseCommand("CREATE, 1211, , , "), [ 'CREATE', '1211' ]);
-    
+function testInputParser() {
+  assert.deepEqual(commands.parseCommand("CREATE, Jones, 1123,"), [
+    "CREATE",
+    "Jones",
+    "1123",
+  ]);
+  assert.deepEqual(commands.parseCommand("DEPOSIT, 1123,  1100"), [
+    "DEPOSIT",
+    "1123",
+    "1100",
+  ]);
+  assert.deepEqual(commands.parseCommand("TRANSFER, 1011, 1123, 1000 "), [
+    "TRANSFER",
+    "1011",
+    "1123",
+    "1000",
+  ]);
+  assert.deepEqual(commands.parseCommand("CREATE, 1211, , , "), [
+    "CREATE",
+    "1211",
+  ]);
 
-    assert.deepEqual(launch.parseCommand(123), null);
-    assert.deepEqual(launch.parseCommand(["CREATE, Jones"]), null);
-    
-    
+  assert.deepEqual(commands.parseCommand(123), null);
+  assert.deepEqual(commands.parseCommand(["CREATE, Jones"]), null);
 }
 
 /**
@@ -25,7 +37,7 @@ function testInputParser(){
  */
 async function testCreateAccounts() {
   //test for successful creation of two accounts
-  let accountCreationResponse = await main.createAccount(username1);
+  let accountCreationResponse = await commands.createAccount(username1);
   assert.ok(
     accountCreationResponse.includes(constants.successMessages.create),
     "Test for successful account creation with username1"
@@ -39,7 +51,7 @@ async function testCreateAccounts() {
     "Test for successful account creation with username1"
   );
 
-  accountCreationResponse = await main.createAccount(username2);
+  accountCreationResponse = await commands.createAccount(username2);
   assert.ok(
     accountCreationResponse.includes(constants.successMessages.create),
     "Test for successful account creation with username2"
@@ -65,7 +77,7 @@ async function testDepositTransactions() {
   let account1 = await newAccount();
   await withChangedBalance([account1], 20000, ["deposit"], async () => {
     assert.equal(
-      (await main.deposit(account1, 20000)).includes(
+      (await commands.deposit(account1, 20000)).includes(
         constants.successMessages.deposit
       ),
       true,
@@ -76,7 +88,7 @@ async function testDepositTransactions() {
   // test for transaction with non-existent account
   await withBalanceUnchanged([account1], async () => {
     assert.equal(
-      (await main.deposit(111, 30000)).includes(
+      (await commands.deposit(111, 30000)).includes(
         constants.errorMessages.incorrectAccount
       ),
       true,
@@ -86,7 +98,7 @@ async function testDepositTransactions() {
     // test for transaction with out-of-bound deposit amount
     assert.equal(
       (
-        await main.deposit(
+        await commands.deposit(
           account1,
           generateRandom(0, constants.minDepositAmount - 1)
         )
@@ -96,7 +108,7 @@ async function testDepositTransactions() {
     );
     assert.equal(
       (
-        await main.deposit(
+        await commands.deposit(
           account1,
           generateRandom(constants.maxDepositAmount + 1, 99999999)
         )
@@ -107,11 +119,11 @@ async function testDepositTransactions() {
   });
 
   // test for exceeding the resultant balance of the account
-  await main.deposit(account1, 40000);
+  await commands.deposit(account1, 40000);
 
   await withBalanceUnchanged([account1], async () => {
     assert.equal(
-      (await main.deposit(account1, 40000)).includes(
+      (await commands.deposit(account1, 40000)).includes(
         constants.errorMessages.maxBalance
       ),
       true,
@@ -121,12 +133,12 @@ async function testDepositTransactions() {
 
   // test for 3+ deposit transactions
   let account2 = await newAccount();
-  await main.deposit(account2, 3000);
-  await main.deposit(account2, 3000);
+  await commands.deposit(account2, 3000);
+  await commands.deposit(account2, 3000);
 
   await withChangedBalance([account2], 3000, ["deposit"], async () => {
     assert.equal(
-      (await main.deposit(account2, 3000)).includes(
+      (await commands.deposit(account2, 3000)).includes(
         constants.successMessages.deposit
       ),
       true,
@@ -136,7 +148,7 @@ async function testDepositTransactions() {
 
   await withBalanceUnchanged([account2], async () => {
     assert.equal(
-      (await main.deposit(account2, 3000)).includes(
+      (await commands.deposit(account2, 3000)).includes(
         constants.errorMessages.maxDeposit
       ),
       true,
@@ -151,12 +163,12 @@ async function testDepositTransactions() {
  */
 async function testWithdrawTransactions() {
   let account1 = await newAccount();
-  await main.deposit(account1, 20000);
+  await commands.deposit(account1, 20000);
 
   //test for successful withdrawal transaction
   await withChangedBalance([account1], 15000, ["withdraw"], async () => {
     assert.equal(
-      (await main.withdraw(account1, 15000)).includes(
+      (await commands.withdraw(account1, 15000)).includes(
         constants.successMessages.withdraw
       ),
       true,
@@ -166,7 +178,7 @@ async function testWithdrawTransactions() {
 
   // test for transaction with non-existent account
   assert.equal(
-    (await main.withdraw(111, 15000)).includes(
+    (await commands.withdraw(111, 15000)).includes(
       constants.errorMessages.incorrectAccount
     ),
     true,
@@ -177,7 +189,7 @@ async function testWithdrawTransactions() {
   await withBalanceUnchanged([account1], async () => {
     assert.equal(
       (
-        await main.withdraw(
+        await commands.withdraw(
           account1,
           generateRandom(0, constants.minWithdrawalAmount - 1)
         )
@@ -187,7 +199,7 @@ async function testWithdrawTransactions() {
     );
     assert.equal(
       (
-        await main.withdraw(
+        await commands.withdraw(
           account1,
           generateRandom(constants.maxWithdrawalAmount + 1, 99999999)
         )
@@ -198,7 +210,7 @@ async function testWithdrawTransactions() {
 
     // test for reducing the resultant balance of the account below 0
     assert.equal(
-      (await main.withdraw(account1, 20000)).includes(
+      (await commands.withdraw(account1, 20000)).includes(
         constants.errorMessages.minBalance
       ),
       true,
@@ -209,13 +221,13 @@ async function testWithdrawTransactions() {
   // test for 3 and more deposit transactions
   let account2 = await newAccount();
 
-  await main.deposit(account2, 20000); // this is required as the opening balance is 0 for a new account
-  await main.withdraw(account2, 3000);
-  await main.withdraw(account2, 3000);
+  await commands.deposit(account2, 20000); // this is required as the opening balance is 0 for a new account
+  await commands.withdraw(account2, 3000);
+  await commands.withdraw(account2, 3000);
 
   await withChangedBalance([account2], 3000, ["withdraw"], async () => {
     assert.equal(
-      (await main.withdraw(account2, 3000)).includes(
+      (await commands.withdraw(account2, 3000)).includes(
         constants.successMessages.withdraw
       ),
       true,
@@ -223,7 +235,7 @@ async function testWithdrawTransactions() {
     );
   });
   assert.equal(
-    (await main.withdraw(account2, 3000)).includes(
+    (await commands.withdraw(account2, 3000)).includes(
       constants.errorMessages.maxWithdraw
     ),
     true,
@@ -240,8 +252,8 @@ async function testTransfers() {
   let account2 = await newAccount();
 
   // setting up opening balances:
-  await main.deposit(account1, 30000);
-  await main.deposit(account2, 30000);
+  await commands.deposit(account1, 30000);
+  await commands.deposit(account2, 30000);
 
   // test for transfers with correct details
   await withChangedBalance(
@@ -250,7 +262,7 @@ async function testTransfers() {
     ["withdraw", "deposit"],
     async () => {
       assert.equal(
-        (await main.transfer(account1, account2, 2000)).includes(
+        (await commands.transfer(account1, account2, 2000)).includes(
           constants.successMessages.transfer
         ),
         true,
@@ -262,7 +274,7 @@ async function testTransfers() {
   // test for transfers with one non-existing account
   await withBalanceUnchanged([account1, account2], async () => {
     assert.equal(
-      (await main.transfer(account1, 123, 4000)).includes(
+      (await commands.transfer(account1, 123, 4000)).includes(
         constants.errorMessages.incorrectAccount
       ),
       true,
@@ -270,7 +282,7 @@ async function testTransfers() {
     );
 
     assert.equal(
-      (await main.transfer(999, account2, 4000)).includes(
+      (await commands.transfer(999, account2, 4000)).includes(
         constants.errorMessages.incorrectAccount
       ),
       true,
@@ -279,7 +291,7 @@ async function testTransfers() {
 
     // test for transfers with both non-existing account
     assert.equal(
-      (await main.transfer(123, 456, 4000)).includes(
+      (await commands.transfer(123, 456, 4000)).includes(
         constants.errorMessages.incorrectAccount
       ),
       true,
@@ -290,7 +302,7 @@ async function testTransfers() {
     // (i) out-of-bound amount for withdrawal in a transfer:
     assert.equal(
       (
-        await main.transfer(
+        await commands.transfer(
           account1,
           account2,
           generateRandom(
@@ -304,7 +316,7 @@ async function testTransfers() {
     );
     assert.equal(
       (
-        await main.transfer(
+        await commands.transfer(
           account1,
           account2,
           generateRandom(
@@ -320,7 +332,7 @@ async function testTransfers() {
     //(ii) out-of-bound amount for deposit in a transfer:
     assert.equal(
       (
-        await main.transfer(
+        await commands.transfer(
           account1,
           account2,
           generateRandom(constants.minDepositAmount - 1, 0)
@@ -331,7 +343,7 @@ async function testTransfers() {
     );
     assert.equal(
       (
-        await main.transfer(
+        await commands.transfer(
           account1,
           account2,
           generateRandom(constants.maxDepositAmount + 1, 99999999)
@@ -346,11 +358,11 @@ async function testTransfers() {
   account1 = await newAccount();
   account2 = await newAccount();
 
-  await main.deposit(account1, 4000);
+  await commands.deposit(account1, 4000);
 
   await withBalanceUnchanged([account1, account2], async () => {
     assert.equal(
-      (await main.transfer(account1, account2, 20000)).includes(
+      (await commands.transfer(account1, account2, 20000)).includes(
         constants.errorMessages.minBalance
       ),
       true,
@@ -359,13 +371,13 @@ async function testTransfers() {
   });
 
   //test for transfers which increase balance of one account beyond INR 1,00,000
-  await main.deposit(account1, 40000);
-  await main.deposit(account2, 40000);
-  await main.deposit(account2, 40000);
+  await commands.deposit(account1, 40000);
+  await commands.deposit(account2, 40000);
+  await commands.deposit(account2, 40000);
 
   await withBalanceUnchanged([account1, account2], async () => {
     assert.equal(
-      (await main.transfer(account1, account2, 25000)).includes(
+      (await commands.transfer(account1, account2, 25000)).includes(
         constants.errorMessages.maxBalance
       ),
       true,
@@ -377,9 +389,9 @@ async function testTransfers() {
   account1 = await newAccount();
   account2 = await newAccount();
 
-  await main.deposit(account1, 40000);
-  await main.deposit(account2, 40000);
-  await main.transfer(account1, account2, 4000);
+  await commands.deposit(account1, 40000);
+  await commands.deposit(account2, 40000);
+  await commands.transfer(account1, account2, 4000);
 
   await withChangedBalance(
     [account1, account2],
@@ -387,7 +399,7 @@ async function testTransfers() {
     ["withdraw", "deposit"],
     async () => {
       assert.equal(
-        (await main.transfer(account1, account2, 4000)).includes(
+        (await commands.transfer(account1, account2, 4000)).includes(
           constants.successMessages.transfer
         ),
         true,
@@ -396,7 +408,7 @@ async function testTransfers() {
     }
   );
   await withBalanceUnchanged([account1, account2], async () => {
-    let exceededTransferResponse = await main.transfer(
+    let exceededTransferResponse = await commands.transfer(
       account1,
       account2,
       4000
@@ -414,7 +426,7 @@ async function testTransfers() {
  * Creates and returns a new account
  */
 async function newAccount() {
-  let accountCreationResponse = await main.createAccount(
+  let accountCreationResponse = await commands.createAccount(
     username1 + Math.floor(Math.random() * 1000)
   );
   return parseInt(

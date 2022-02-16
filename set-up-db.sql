@@ -4,7 +4,7 @@ CREATE DATABASE bank_accounts;
 DROP TABLE IF EXISTS ledger;
 DROP TABLE IF EXISTS account;
 DROP TABLE IF EXISTS transaction_type;
-DROP SEQUENCE IF EXISTS account_number_seq;
+DROP SEQUENCE IF EXISTS account_number_seq CASCADE;
 
 CREATE SEQUENCE IF NOT EXISTS account_number_seq START 1001;
 
